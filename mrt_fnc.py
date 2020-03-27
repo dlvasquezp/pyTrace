@@ -7,131 +7,67 @@ Created on Sat Mar 21 06:47:46 2020
 import math
 from ray_trc import Trace
 
-def mf_ray_LMN ( x0,*arg):
+def mf_ray_LMN (x0,*arg):
     '''
-    Ray index 0: it goes to the center of the pupil; also chief ray
-    x0: (double) angle [radians]
-    *arg: (list) [object RaySource, object OpSysData, int indexRay] # still missing: ApertureR, Surface
+    Merit function to calculate the error produced by the rays propaged in the 
+    x0 direction [x0[0],x0[1],1] 
     
-    Falta extenderlo a X
+    x0:   (list) [vector_compX, vector_comp_y] 
+    *arg: (list) [object RaySource, object OpSysData, int indexRay]
+    
+    Note: the object is passed and modified.
     '''
-    #Merit function constant values
-    #indexRay = 0
-    surfProp = 9 # Y position
+    # x0 norm must be <1
+    # arg[0] must be RaySource
+    # arg[1] must be Opsysata
+    # arg[2] must be int [0,1,2,3,4]
     
     #Copy the values
-    alfa    = x0 
-    RayList = arg[0].RayList
+    vector        = x0 
+    RayList       = arg[0].RayList
     SurfaceData   = arg[1].SurfaceData
     ApertureIndex = arg[1].Aperture[0]
     ApertureRadio = arg[1].Aperture[1]
-    indexRay = arg[2]
+    indexRay      = arg[2]
     
-    #Replace the YZ cosine director in the object plane
-    LMN=[0,math.cos(alfa),math.sqrt(1-math.cos(alfa)**2)]
+    #Calculate director cosines
+    norm     = math.sqrt(1.0 + vector[0]**2 + vector[1]**2) 
+    cosDirX  = vector[0]/norm
+    cosDirY  = vector[1]/norm
+    cosDirZ  = 1.0/norm 
+    LMN      = [cosDirX,cosDirY,cosDirZ]
+        
+    #replace cosine director    
     arg[0].ChangeCosineDir(indexRay,LMN)
     
     #Make Raytrace
     RayTrace  = Trace(RayList,SurfaceData)
     
-    #Calculate error                THIS PART NEED TO BE IMPROVED
+    #Calculate error
     error = -1
     if indexRay == 0:
-        error    = abs(RayTrace[indexRay, surfProp ,ApertureIndex])
+        error    = (abs(RayTrace[indexRay, 9 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 8 ,ApertureIndex]))
+        
     if indexRay == 1:
-        error    = abs(+ApertureRadio - RayTrace[indexRay, surfProp ,ApertureIndex])
+        error    = (abs(+ApertureRadio - RayTrace[indexRay, 9 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 8 ,ApertureIndex]))
+                    
     if indexRay == 2:
-        error    = abs(-ApertureRadio - RayTrace[indexRay, surfProp ,ApertureIndex])
+        error    = (abs(-ApertureRadio - RayTrace[indexRay, 9 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 8 ,ApertureIndex]))
+                   
+    if indexRay == 3:
+        error    = (abs(+ApertureRadio - RayTrace[indexRay, 8 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 9 ,ApertureIndex]))
+        
+    if indexRay == 4:
+        error    = (abs(-ApertureRadio - RayTrace[indexRay, 8 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 9 ,ApertureIndex]))
+    
     
     return error
 
-
-def mf_ray0_LMN ( x0,*arg):
-    '''
-    Ray index 0: it goes to the center of the pupil; also chief ray
-    x0: (double) angle [radians]
-    *arg: (list) [object RaySource, object OpSysData] # still missing: ApertureR, Surface
-    '''
-    #Merit function constant values
-    indexRay = 0
-    surfProp = 9 # Y position
-    
-    #Copy the values
-    alfa    = x0 
-    RayList = arg[0].RayList
-    SurfaceData   = arg[1].SurfaceData
-    ApertureIndex = arg[1].Aperture[0]
-    ApertureRadio = arg[1].Aperture[1]
-    
-    #Replace the YZ cosine director in the object plane
-    LMN=[0,math.cos(alfa),math.sqrt(1-math.cos(alfa)**2)]
-    arg[0].ChangeCosineDir(0,LMN)
-    
-    #Make Raytrace
-    RayTrace  = Trace(RayList,SurfaceData)
-    
-    #Calculate error
-    error    = abs(RayTrace[indexRay, surfProp ,ApertureIndex])
-    
-    return error
-
-def mf_ray1_LMN ( x0,*arg):
-    '''
-    Ray index 1: it goes to the + rim of the pupil; also marginal/coma ray
-    x0: (double) angle [radians]
-    *arg: (list) [object RaySource, object OpSysData] # still missing: ApertureR, Surface
-    '''
-    #Merit function constant values
-    indexRay = 1
-    surfProp = 9 # Y position
-    
-    #Copy the values
-    alfa    = x0 
-    RayList = arg[0].RayList
-    SurfaceData   = arg[1].SurfaceData
-    ApertureIndex = arg[1].Aperture[0]
-    ApertureRadio = arg[1].Aperture[1]
-    
-    #Replace the YZ cosine director in the object plane
-    LMN=[0,math.cos(alfa),math.sqrt(1-math.cos(alfa)**2)]
-    arg[0].ChangeCosineDir(indexRay,LMN)
-    
-    #Make Raytrace
-    RayTrace  = Trace(RayList,SurfaceData)
-    
-    #Calculate error
-    error    = abs(ApertureRadio - RayTrace[indexRay, surfProp ,ApertureIndex])
-    
-    return error
-
-def mf_ray2_LMN ( x0,*arg):
-    '''
-    Ray index 2: it goes to the - rim of the pupil; also marginal/coma ray
-    x0: (double) angle [radians]
-    *arg: (list) [object RaySource, object OpSysData] # still missing: ApertureR, Surface
-    '''
-    #Merit function constant values
-    indexRay = 2
-    surfProp = 9 # Y position
-    
-    #Copy the values
-    alfa    = x0 
-    RayList = arg[0].RayList
-    SurfaceData   = arg[1].SurfaceData
-    ApertureIndex = arg[1].Aperture[0]
-    ApertureRadio = arg[1].Aperture[1]
-    
-    #Replace the YZ cosine director in the object plane
-    LMN=[0,math.cos(alfa),math.sqrt(1-math.cos(alfa)**2)]
-    arg[0].ChangeCosineDir(indexRay,LMN)
-    
-    #Make Raytrace
-    RayTrace  = Trace(RayList,SurfaceData)
-    
-    #Calculate error
-    error    = abs(-ApertureRadio - RayTrace[indexRay, surfProp ,ApertureIndex])
-    
-    return error
 
 if __name__=='__main__':
     from pto_src import PointSource
@@ -144,6 +80,6 @@ if __name__=='__main__':
     
     design1 = Trace(pto1.RayList,syst1.SurfaceData)
     
-    x0  = 1.4
-    res0 = mf_ray2_LMN (x0,pto1,syst1)
-    res1 = mf_ray_LMN (x0,pto1,syst1,2)
+    x0  = [0,0]
+    res0 = mf_ray_LMN (x0,pto1,syst1,0)
+    

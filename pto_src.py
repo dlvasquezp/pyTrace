@@ -4,10 +4,6 @@ Created on Fri Mar 20 20:43:53 2020
 
 @author: David Vasquez
 """
-import math
-from numpy          import pi as pi
-from scipy.optimize import minimize
-from mrt_fnc        import mf_ray0_LMN,mf_ray1_LMN,mf_ray2_LMN
 
 class PointSource:                                     #Only for point source, for points at infinity other function is needed
     '''
@@ -24,8 +20,8 @@ class PointSource:                                     #Only for point source, f
             0           optical axis                chief ray
             1           y upper marginal ray        y upper coma ray          y=meridional
             2           y lower marginal ray        y lower coma ray
-            3           x negative marginal ray     x negative coma ray       x=sagintal
-            4           x positive marginal ray     x positive coma ray       negative/positive = pupil cartesian X sign 
+            3           x positive marginal ray     x positive coma ray       x=sagintal
+            4           x negative marginal ray     x negative coma ray       positive/negative = pupil cartesian X sign 
             5           screw ray                   screw ray
         All the ray lists should be standard
     

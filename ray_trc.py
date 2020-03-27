@@ -84,7 +84,16 @@ def makeTrace(RayTrace,i,k):
             
             F = c*(X0**2+Y0**2)
             G = Nmin1 - c*(Lmin1*X0+Mmin1*Y0)
-            Delta = F / (G + math.sqrt(G**2-c*F) )
+            #Delta = F / (G + math.sqrt(G**2-c*F) )
+            try:
+                Delta = F / (G + math.sqrt(G**2-c*F) )
+            except ValueError:
+                RayTrace[q,3 ,w] = X0
+                RayTrace[q,4 ,w] = Y0
+                RayTrace[q,5 ,w] = F
+                RayTrace[q,6 ,w] = G
+                RayTrace[q,7:22 ,w] = 10e6
+                return RayTrace
             
             X = X0 + Lmin1*Delta
             Y = Y0 + Mmin1*Delta

@@ -22,7 +22,7 @@ syst1.changeSurface(10,0,1,1)
 syst1.addSurface(10,0.2,1.5,2)
 syst1.addSurface(10,-0.005,1,3)
 syst1.addSurface(40,0.08,1.7,4)
-syst1.changeAperture(2,1.0)
+syst1.changeAperture(4,1.0)
 
 # Instantiate point source
 pto1  = PointSource([0,2,0],635)

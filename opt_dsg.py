@@ -4,11 +4,11 @@ Created on Sat Mar 21 21:21:14 2020
 
 @author: David Vasquez
 """
+
 from opt_sys import OpSysData
 from pto_src import PointSource
 from ray_trc import Trace
 from mrt_fnc import mf_ray_LMN
-from numpy   import pi as pi
 from scipy.optimize import minimize
 import math
 
@@ -33,7 +33,7 @@ class OpDesign:
      
     def propagate(self):
         #Propagate rays indices until 2
-        for rayIndex in range(3):
+        for rayIndex in range(5):
             LMN     = self.propagate_ray (self.pto       ,self.optSys,rayIndex)
             self.pto.ChangeCosineDir(rayIndex,LMN)
             LMN     = self.propagate_ray (self.pto_onaxis,self.optSys,rayIndex)
@@ -41,13 +41,21 @@ class OpDesign:
 
     def propagate_ray (self,pto,optSys,rayIndex):                     
         #Find value
-        x0  = pi/2
-        bnds =[(0,+pi)]
-        res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='SLSQP', bounds=bnds)
+        x0  = [0,0]
+        #bnds =[(-10e6,+10e6),(-10e6,+10e6)]
+        #res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='SLSQP', bounds=bnds)
+        res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Nelder-Mead')
         
         # Replace value 
-        x1 = res.x[0]
-        LMN  = [0,math.cos(x1),math.sqrt(1-math.cos(x1)**2)]
+        x1 = res.x
+        #pdb.set_trace()
+        print (x1)
+        norm     = math.sqrt(1.0 + x1[0]**2 + x1[1]**2) 
+        cosDirX  = x1[0]/norm
+        cosDirY  = x1[1]/norm
+        cosDirZ  = 1.0/norm 
+        LMN      = [cosDirX,cosDirY,cosDirZ]
+        #LMN  = [0,math.cos(x1),math.sqrt(1-math.cos(x1)**2)]
         
         return LMN
     
