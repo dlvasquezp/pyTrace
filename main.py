@@ -18,11 +18,11 @@ import matplotlib.lines
 
 # Instantiate optical system
 syst1 = OpSysData()
-syst1.changeSurface(10,0,1,1) 
+syst1.changeSurface(1,0,1,1) 
 syst1.addSurface(10,0.2,1.5,2)
 syst1.addSurface(10,-0.005,1,3)
 syst1.addSurface(40,0.08,1.7,4)
-syst1.changeAperture(4,1.0)
+syst1.changeAperture(3,2.0)
 
 # Instantiate point source
 pto1  = PointSource([0,2,0],635)
@@ -82,7 +82,7 @@ for q in l1:
 plt.plot(zz10,y10,'b',zz11,y11,'b',zz12,y12,'b')
 plt.plot(zzz10,yyy10,'g',zzz11,yyy11,'g',zzz12,yyy12,'g')
 plt.xlim([zz10[0]-10,zz10[-1]+10])
-plt.ylim([y10[0]-10,y10[-1]+10])
+plt.ylim([-abs(y10[0]+10),+abs(y10[0]+10)])
 plt.show()
 
 

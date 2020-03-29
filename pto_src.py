@@ -4,6 +4,7 @@ Created on Fri Mar 20 20:43:53 2020
 
 @author: David Vasquez
 """
+import numpy as np
 
 class PointSource:                                     #Only for point source, for points at infinity other function is needed
     '''
@@ -44,9 +45,11 @@ class PointSource:                                     #Only for point source, f
         self.RayList.append([self.Position,[0,0,1],self.Lambda,4])
         
     def NewRay(self,XYZ,LMN):
+        assert np.isclose(np.sum(np.power(LMN,2)),1),'Not valid direction cosines'
         self.RayList.append([XYZ,LMN,self.Lambda,5])
     
     def ChangeCosineDir(self, RayIndex, LMN):
+        assert np.isclose(np.sum(np.power(LMN,2)),1),'Not valid direction cosines'
         self.RayList[RayIndex][1]=LMN
 
         
@@ -59,5 +62,5 @@ if __name__=='__main__':
     pto1.ChangeCosineDir(0,LMN)
     print(pto1.RayList)
     # New ray
-    pto1.NewRay([1,1,1],[1,0,0])
+    pto1.NewRay([1,1,1],[1,0.001,0])
     print(pto1.RayList)

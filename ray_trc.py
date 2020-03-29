@@ -46,22 +46,24 @@ def FillFirst(RayList,SurfaceData,RayTrace,i,k):
         RayTrace[q,8 ,0] = RayList[q][0][0]                     # X coordinate from object
         RayTrace[q,9 ,0] = RayList[q][0][1]                     # Y coordinate from object
         RayTrace[q,10,0] = RayList[q][0][2]                     # Z coordinate from object
-            
+        
+        RayTrace[q,15,:] = RayList[q][2]                        # Wavelength in nm
+        
         RayTrace[q,19,0] = RayList[q][1][0]                     # X cosine director
         RayTrace[q,20,0] = RayList[q][1][1]                     # Y cosine director
-        RayTrace[q,21,0] = RayList[q][1][2]                     # Z cosine director
+        RayTrace[q,21,0] = RayList[q][1][2]                     # Z cosine director       
         
-        for w in range (0,k):                                        # k -> surface indice
+        for w in range (0,k):                                  # k -> surface indice
             RayTrace[q,0,w] = SurfaceData[w][0]                # distance in mm
             RayTrace[q,1,w] = SurfaceData[w][1]                # curvature in 1/mm
             RayTrace[q,2,w] = SurfaceData[w][2]                # refraction indice  (still missing the calculation based on the wavelength)
             
-            RayTrace[q,15,w] = RayList[q][2]                   # Wavelength in nm
+        
             
     return RayTrace
 
 def makeTrace(RayTrace,i,k):
-    for q in range (0,i):                                                   #i -> ray indice
+    for q in range (0,i):                                             #i -> ray indice
         for w in range (1,k):                                         #k -> surface indice, start in 1
                 
             #Transfer part1
@@ -93,13 +95,14 @@ def makeTrace(RayTrace,i,k):
                 RayTrace[q,5 ,w] = F
                 RayTrace[q,6 ,w] = G
                 RayTrace[q,7:22 ,w] = 10e6
+                RayTrace[q,11,w] = 0        # ckeck 1: 0 (surface not meet)
                 return RayTrace
             
             X = X0 + Lmin1*Delta
             Y = Y0 + Mmin1*Delta
             Z = Nmin1*Delta
             
-            check1= 0                                        # The check is missing
+            check1 = 1   # The ray meet the surface
             
             #Refraction
             

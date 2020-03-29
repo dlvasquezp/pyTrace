@@ -39,23 +39,37 @@ class OpDesign:
             LMN     = self.propagate_ray (self.pto_onaxis,self.optSys,rayIndex)
             self.pto_onaxis.ChangeCosineDir(rayIndex,LMN)
 
-    def propagate_ray (self,pto,optSys,rayIndex):                     
+    def propagate_ray (self,pto,optSys,rayIndex): 
+        
+        initialValue = []
+        numberStep   = 10
+        for q in  range(numberStep):
+            if q == 0:
+                initialValue.append([0,0]) 
+            else:
+                initialValue.append([0,-q/10.0]) 
+                initialValue.append([0,+q/10.0]) 
+        #print (initialValue)        
+        for x0 in initialValue:
+            res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Nelder-Mead')
+            print(x0,res.fun)
+            if res.fun < 1e-3:
+                break
         #Find value
-        x0  = [0,0]
+        #x0  = [0,0]
         #bnds =[(-10e6,+10e6),(-10e6,+10e6)]
         #res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='SLSQP', bounds=bnds)
-        res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Nelder-Mead')
+        #res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Nelder-Mead')
         
+        #res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Newton-CG')
+        print(res.fun)
         # Replace value 
         x1 = res.x
-        #pdb.set_trace()
-        print (x1)
         norm     = math.sqrt(1.0 + x1[0]**2 + x1[1]**2) 
         cosDirX  = x1[0]/norm
         cosDirY  = x1[1]/norm
         cosDirZ  = 1.0/norm 
         LMN      = [cosDirX,cosDirY,cosDirZ]
-        #LMN  = [0,math.cos(x1),math.sqrt(1-math.cos(x1)**2)]
         
         return LMN
     
