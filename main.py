@@ -4,7 +4,7 @@ Created on Sat Mar 21 07:24:33 2020
 
 @author: David Vasquez
 """
-
+from plt_fnc import plotSystem
 from opt_sys import OpSysData
 from pto_src import PointSource
 from opt_dsg import OpDesign
@@ -19,10 +19,11 @@ import matplotlib.lines
 # Instantiate optical system
 syst1 = OpSysData()
 syst1.changeSurface(1,0,1,1) 
-syst1.addSurface(10,0.2,1.5,2)
-syst1.addSurface(10,-0.005,1,3)
-syst1.addSurface(40,0.08,1.7,4)
-syst1.changeAperture(3,2.0)
+syst1.addSurface(13,-0.19,1.5,2)
+syst1.addSurface(8,-0.005,1,3)
+syst1.addSurface(4,0.08,1.7,4)
+syst1.addSurface(10,0,1,5)
+syst1.changeAperture(4,2.0)
 
 # Instantiate point source
 pto1  = PointSource([0,2,0],635)
@@ -75,10 +76,19 @@ yyy11 = RayTrace2[1][9][:]
 yyy12 = RayTrace2[2][9][:]
 #############################################################
 #l1=matplotlib.patches.Arc((70,0),20,20,angle=90.0,theta1=0.0,theta2=180.0)
-plt.figure()
-l1 = syst1.plotSystem()
-for q in l1:
-    plt.gca().add_patch(q)
+#plt.figure()
+#l1 = syst1.plotSystem()
+#for q in l1:
+#    plt.gca().add_patch(q)
+
+arcs,line2d = plotSystem(syst1)
+    
+fig, ax = plt.subplots()
+for q in arcs:
+    fig.gca().add_patch(q)
+for w in line2d:
+    ax.add_line(w)
+
 plt.plot(zz10,y10,'b',zz11,y11,'b',zz12,y12,'b')
 plt.plot(zzz10,yyy10,'g',zzz11,yyy11,'g',zzz12,yyy12,'g')
 plt.xlim([zz10[0]-10,zz10[-1]+10])

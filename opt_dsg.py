@@ -10,6 +10,7 @@ from pto_src import PointSource
 from ray_trc import Trace
 from mrt_fnc import mf_ray_LMN
 from scipy.optimize import minimize
+from random         import uniform
 import math
 
 class OpDesign:
@@ -41,20 +42,22 @@ class OpDesign:
 
     def propagate_ray (self,pto,optSys,rayIndex): 
         
-        initialValue = []
-        numberStep   = 10
-        for q in  range(numberStep):
-            if q == 0:
-                initialValue.append([0,0]) 
-            else:
-                initialValue.append([0,-q/10.0]) 
-                initialValue.append([0,+q/10.0]) 
+        #initialValue = []
+        #numberStep   = 10
+        #for q in  range(numberStep):
+        #    if q == 0:
+        #        initialValue.append([0,0]) 
+        #    else:
+        #        initialValue.append([0,uniform(-0.02,0.02)]) 
+
         #print (initialValue)        
-        for x0 in initialValue:
-            res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Nelder-Mead')
-            print(x0,res.fun)
-            if res.fun < 1e-3:
-                break
+        #for x0 in initialValue:
+        x0  = [0,0]
+        res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Nelder-Mead')
+            #print(x0,res.fun)
+            #if res.fun < 1e-3:
+            #    print('solved:'+ str(res.fun))
+            #    break
         #Find value
         #x0  = [0,0]
         #bnds =[(-10e6,+10e6),(-10e6,+10e6)]
@@ -62,7 +65,7 @@ class OpDesign:
         #res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Nelder-Mead')
         
         #res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Newton-CG')
-        print(res.fun)
+        #print(res.fun)
         # Replace value 
         x1 = res.x
         norm     = math.sqrt(1.0 + x1[0]**2 + x1[1]**2) 
