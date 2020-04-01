@@ -13,7 +13,8 @@ from numpy import pi
 def plotSystem(optSystem):
     #number of surfaces
     surf_len = len(optSystem.SurfaceData)
-    aperture = optSystem.Aperture[1]
+    aperture = optSystem.Aperture[0]
+    apertureIndex = optSystem.Aperture[1]
     
     #list the Z coordinates
     z0=[]
@@ -124,6 +125,13 @@ def plotSystem(optSystem):
                                                       ,(-yP[q][1],-conP[q][1],-yP[q+1][1])
                                                       ,c='black',lw=1.0,ls='-'))
 
+    # Aperture stop
+    HIGH=1.5
+    lines2D.append(matplotlib.lines.Line2D((z0[apertureIndex],z0[apertureIndex]),(aperture,aperture*HIGH)
+                                           ,c='black',lw=2.0,ls='-'))
+    lines2D.append(matplotlib.lines.Line2D((z0[apertureIndex],z0[apertureIndex]),(-aperture,-aperture*HIGH)
+                                           ,c='black',lw=2.0,ls='-'))
+    
     return surfPatch,lines2D
 
 if __name__ == '__main__':
@@ -131,15 +139,15 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     
     syst1 = OpSysData()
-    syst1.addSurface(2,0.2,1.5,1)
-    syst1.addSurface(2,0.2,1.1,2)
-    syst1.addSurface(3,3,1,3)
-    syst1.addSurface(4,0.4,1.8,4)
+    syst1.addSurface(2,0.2,1.5)
+    syst1.addSurface(2,0.2,1.1)
+    syst1.addSurface(3,3,1)
+    syst1.addSurface(4,0.4,1.8)
     #syst1.changeSurface(1,0.1,2,1)
     #syst1.changeAperture(2,1.0)
 
-    syst1.invertSurfaceOrder(4,5)
-    syst1.invertSurfaceOrder(1,3)
+    #syst1.invertSurfaceOrder(4,5)
+    #syst1.invertSurfaceOrder(1,3)
    # print(syst1.SurfaceData)
     
     arcs,line2d = plotSystem(syst1)

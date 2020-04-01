@@ -8,7 +8,7 @@ Created on Sat Mar 21 21:21:14 2020
 from opt_sys import OpSysData
 from pto_src import PointSource
 from ray_trc import Trace
-from mrt_fnc import mf_ray_LMN
+from mrt_fnc import mf_ray_LMN,mf_ray_XYZ0
 from scipy.optimize import minimize
 from random         import uniform
 import math
@@ -29,16 +29,32 @@ class OpDesign:
         #Propagate
         self.propagate()
         #Trace
+        self.traceDesign()
+        
+    def traceDesign(self):
         self.RayTrace        = Trace(self.pto.RayList       ,self.optSys.SurfaceData)
         self.RayTrace_onaxis = Trace(self.pto_onaxis.RayList,self.optSys.SurfaceData)
-     
+        
     def propagate(self):
-        #Propagate rays indices until 2
+        #Propagate rays indices until 5
         for rayIndex in range(5):
             LMN     = self.propagate_ray (self.pto       ,self.optSys,rayIndex)
             self.pto.ChangeCosineDir(rayIndex,LMN)
             LMN     = self.propagate_ray (self.pto_onaxis,self.optSys,rayIndex)
             self.pto_onaxis.ChangeCosineDir(rayIndex,LMN)
+            
+    def autofocus(self):
+        #Perform optimization
+        rayIndex = 1
+        x0 = self.optSys.SurfaceData[-2][0]
+        res= minimize(mf_ray_XYZ0, x0,args=(self.pto_onaxis,self.optSys,rayIndex),method='Nelder-Mead')
+        
+        #Replace value
+        x1 = res.x
+        self.optSys.SurfaceData[-2][0]=x1
+        #Actualize trace
+        self.traceDesign()
+        
 
     def propagate_ray (self,pto,optSys,rayIndex): 
         

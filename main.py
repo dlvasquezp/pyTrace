@@ -18,18 +18,25 @@ import matplotlib.lines
 
 # Instantiate optical system
 syst1 = OpSysData()
-syst1.changeSurface(1,0,1,1) 
-syst1.addSurface(13,-0.19,1.5,2)
-syst1.addSurface(8,-0.005,1,3)
-syst1.addSurface(4,0.08,1.7,4)
-syst1.addSurface(10,0,1,5)
-syst1.changeAperture(4,2.0)
+syst1.changeSurface(4,0,1,surfIndex=0) 
+syst1.addSurface(8,0.02 ,1.5)
+syst1.addSurface(8 ,0.005,1  )
+syst1.addSurface(4 ,0.08  ,'N-BK7')
+syst1.addSurface(10,0.0   ,1  )
+syst1.changeAperture(1,surfIndex=2)
+
 
 # Instantiate point source
-pto1  = PointSource([0,2,0],635)
+pto1  = PointSource([0,1.1,0],635)
 
 # Instantiate optical design
 design1  = OpDesign(pto1,syst1)
+
+print(design1.optSys.SurfaceData[-2][0])
+# autofocus
+#design1.autofocus()
+
+print(design1.optSys.SurfaceData[-2][0])
 
 #Copy Ray trace and plot it
 RayTrace1 = design1.RayTrace
@@ -81,7 +88,7 @@ yyy12 = RayTrace2[2][9][:]
 #for q in l1:
 #    plt.gca().add_patch(q)
 
-arcs,line2d = plotSystem(syst1)
+arcs,line2d = plotSystem(design1.optSys)
     
 fig, ax = plt.subplots()
 for q in arcs:

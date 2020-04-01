@@ -30,7 +30,6 @@ class PointSource:                                     #Only for point source, f
                 ChangeCosineDir
                 Propagate
         falta:
-        revisar que XYZ sea una lista con 3 valores numericos
         funcion para revisar valores numericos
     '''
     def __init__(self, XYZ, Lambda):                   #Vectors as entry

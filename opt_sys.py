@@ -5,16 +5,6 @@ Created on Fri Mar 20 19:29:17 2020
 @author: David Vasquez
 """
 
-from numpy   import pi
-import matplotlib.pyplot as plt
-import matplotlib.patches
-import matplotlib.lines
-import math
-
-#missing: function to modify object distance,
-#         if index not define append to the last surface,
-#         Assert 
-
 class OpSysData:
     '''
     Properties:
@@ -23,41 +13,68 @@ class OpSysData:
             C: curvature (1/mm)
             n: refraction index (-)
             surfType: surface type ('object', 'surface', 'image')
-        Aperture: list (surfIndex,radio)
+        Aperture: list (semiradius, surfIndex)
+            semiradius: aperture radio (mm)
             surfIndex: surface index where the aperture is located
-            radio: aperture radio (mm)
-    Falta funcion para evaluar limites y valores erroneos 
-    Falta funcion para modificar plano objeto
-    Falta funcion para visualizar el sistema
     '''
     def __init__(self):                      
         self.SurfaceData=[]
-        self.SurfaceData.append([10,0,1,'object' ])
-        self.SurfaceData.append([10,0,1,'surface'])
-        self.SurfaceData.append([ 0,0,1,'image'  ])
+        self.SurfaceData.append([10,0,1,'object'])
+        self.SurfaceData.append([ 0,0,1,'image' ])
         self.Aperture = []
-        self.changeAperture(1,2.0)
+        self.changeAperture(2.0,surfIndex=1)
     
-    def addSurface(self, d, C, n,surfIndex):
-        if surfIndex < len(self.SurfaceData) and surfIndex>0:
+    def addSurface(self, d, C, n,surfIndex=-1):
+        surf_len= len(self.SurfaceData)
+        
+        if surfIndex > 0 and surfIndex < surf_len:
             self.SurfaceData.insert(surfIndex,[d,C,n,'surface']) 
         else:
-            print('Surface index not valid')
-    
-    def changeSurface(self, d, C, n,surfIndex):                   #if index not define append to the last surface, missing Assert
-        if surfIndex < len(self.SurfaceData) and surfIndex>0:
+            if surfIndex == -1:
+                #if surfIndex not defined, append to the last position before 'image'
+                self.SurfaceData.insert((surf_len-1),[d,C,n,'surface']) 
+            else:
+                raise ValueError('addSurface: invalid surface index')
+                
+                
+    def changeSurface(self, d, C, n,surfIndex=-1):
+        surf_len= len(self.SurfaceData)
+        
+        if surfIndex > 0 and surfIndex < surf_len:
             self.SurfaceData[surfIndex]=[d,C,n,'surface'] 
         else:
-            print('Surface index not valid')
+            if surfIndex == 0:
+                #The object plane is changed, curvature is ignored.
+                self.SurfaceData[0]=[d,0,n,'object']
+            else:
+                raise ValueError('changeSurface: invalid surface index ')
+            
+            
+    def deleteSurface(self,surfIndex=-1):
+        surf_len= len(self.SurfaceData)
         
-    def changeAperture(self, surfIndex, radio):
-        if surfIndex < len(self.SurfaceData) and surfIndex>0:     #Check for vaid indices
-            self.Aperture = [surfIndex, radio]
+        if surfIndex > 0 and surfIndex < (surf_len-1):
+            del self.SurfaceData[surfIndex]
         else:
-            print('Surface index not valid')
+            raise ValueError('deleteSurface: invalid surface index')
+        
+        
+    def changeAperture(self,semiradius,surfIndex=-1):
+        surf_len= len(self.SurfaceData)
+        
+        if surfIndex > 0 and surfIndex < surf_len:     #Check for vaid indices
+            self.Aperture = [semiradius,surfIndex]
+        else:
+            raise ValueError('changeAperture: invalid surface index')
+            
             
     def invertSurfaceOrder(self, surf1, surf2):                   #still missing surf# validation
-        #CHECK
+        surf_len= len(self.SurfaceData)
+        
+        assert surf1 > 0,            'invertSurface: surf1 invalid'
+        assert surf2 < (surf_len-1), 'invertSurface: surf2 invalid'
+        assert surf1 < surf2,        'invertSurface: surf1 > surf2'
+        
         surfCopy_inv = self.SurfaceData[surf1:surf2+1][::-1]
         dist = [d[0] for d in surfCopy_inv]
         curv = [C[1] for C in surfCopy_inv]
@@ -73,29 +90,39 @@ class OpSysData:
 
         
 if __name__=='__main__':
+    
     from plt_fnc import plotSystem
+    import matplotlib.pyplot as plt
+    
+    #Create system
     syst1 = OpSysData()
-    syst1.addSurface(10,5,1.42,0)
-    #print(syst1.SurfaceData)
-    syst1.addSurface(2,2,2,2)
-    syst1.addSurface(3,3,3,3)
-    syst1.addSurface(4,4,4,4)
-    #print(syst1.SurfaceData)
-    syst1.changeSurface(1,1,1,1)
-    #print(syst1.SurfaceData)
-    #print(syst1.Aperture)
-    syst1.changeAperture(2,4)
-    #print(syst1.Aperture)
-    #surfPatch=syst1.plotSystem()
-    #plt.gca().add_patch(surfPatch[0])
-    #syst1.invertSurfaceOrder(2,4)
+    syst1.changeSurface(2,5,1,surfIndex=0)
+    syst1.addSurface(2,1/2.0,2)
+    syst1.addSurface(10,1/2.0,2)
+    syst1.addSurface(3,1/3.0,3)
+    syst1.addSurface(4,1/4.0,1)
+    print('Optical system data')
     print(syst1.SurfaceData)
     
-    plt.figure()
-    l1 = plotSystem(syst1)
-    for q in l1:
-        plt.gca().add_patch(q)
+    #Test changeSurface
+    syst1.changeSurface(9,1/9,4,surfIndex=3)
+    print('Surface 3 changed')
+    print(syst1.SurfaceData)
     
-    plt.xlim([0,+25])
-    plt.ylim([-2,+2])
+    #Test deleteSurface
+    syst1.deleteSurface(surfIndex=3)
+    print('Surface 3 deleted')
+    print(syst1.SurfaceData)
+    
+    #Plot system
+    arcs,line2d = plotSystem(syst1)
+    
+    fig, ax = plt.subplots()
+    for q in arcs:
+        fig.gca().add_patch(q)
+    for w in line2d:
+        ax.add_line(w)
+    
+    plt.xlim([-5,+35])
+    plt.ylim([-6,+6])
     plt.show()

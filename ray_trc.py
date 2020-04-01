@@ -4,9 +4,9 @@ Created on Sat Mar 21 05:44:55 2020
 
 @author: David Vasquez
 """
-
+from catalog import OPT_GLASS, sellmeierDispForm
 import math
-import numpy as np
+import numpy
 
 def Trace(RayList,SurfaceData):
     '''
@@ -29,13 +29,13 @@ def Trace(RayList,SurfaceData):
             
     Falta, the se puedan pasar listas the listas para escalarlo
     calcular el indice de refraccion
-    implementar el check1
     implementar excepciones
+    corregir cuando no se encuentren los rayos con las superficies
     '''
     i = len(RayList)                          # Ray i
     j = 23                                    # [d,c,n][X0,Y0][F,G,Delta][X,Y,Z][check1][alfa,beta,gamma][lambda][cosI,CosIp][K][L,M,N][Check2]
     k = len(SurfaceData)                      # Surface k
-    RayTrace = np.zeros([i,j,k])
+    RayTrace = numpy.zeros([i,j,k])
     RayTrace = FillFirst(RayList,SurfaceData,RayTrace,i,k)
     RayTrace = makeTrace(RayTrace,i,k)
     
@@ -47,16 +47,27 @@ def FillFirst(RayList,SurfaceData,RayTrace,i,k):
         RayTrace[q,9 ,0] = RayList[q][0][1]                     # Y coordinate from object
         RayTrace[q,10,0] = RayList[q][0][2]                     # Z coordinate from object
         
+        RayTrace[q,11,0] = 1                                    # Chech 1 -> true
         RayTrace[q,15,:] = RayList[q][2]                        # Wavelength in nm
         
         RayTrace[q,19,0] = RayList[q][1][0]                     # X cosine director
         RayTrace[q,20,0] = RayList[q][1][1]                     # Y cosine director
-        RayTrace[q,21,0] = RayList[q][1][2]                     # Z cosine director       
+        RayTrace[q,21,0] = RayList[q][1][2]                     # Z cosine director 
+        
+        RayTrace[q,22,0] = 1                                    # Chech 2 -> true
         
         for w in range (0,k):                                  # k -> surface indice
             RayTrace[q,0,w] = SurfaceData[w][0]                # distance in mm
             RayTrace[q,1,w] = SurfaceData[w][1]                # curvature in 1/mm
-            RayTrace[q,2,w] = SurfaceData[w][2]                # refraction indice  (still missing the calculation based on the wavelength)
+            # refraction indice 
+            if isinstance(SurfaceData[w][2],basestring):
+                try:
+                    RayTrace[q,2,w] = sellmeierDispForm (OPT_GLASS[SurfaceData[w][2]]
+                                                        ,RayList[q][2])
+                except KeyError:
+                    raise ValueError('%s, non existent glass material' % SurfaceData[w][2])
+            else:
+                RayTrace[q,2,w] = SurfaceData[w][2]                 
             
         
             
@@ -86,23 +97,21 @@ def makeTrace(RayTrace,i,k):
             
             F = c*(X0**2+Y0**2)
             G = Nmin1 - c*(Lmin1*X0+Mmin1*Y0)
-            #Delta = F / (G + math.sqrt(G**2-c*F) )
+            
             try:
                 Delta = F / (G + math.sqrt(G**2-c*F) )
             except ValueError:
-                RayTrace[q,3 ,w] = X0
-                RayTrace[q,4 ,w] = Y0
-                RayTrace[q,5 ,w] = F
-                RayTrace[q,6 ,w] = G
-                RayTrace[q,7:22 ,w] = 10e6
-                RayTrace[q,11,w] = 0        # ckeck 1: 0 (surface not meet)
-                return RayTrace
+                RayTrace[q,3:11,w:]  = numpy.NaN
+                RayTrace[q,12:15,w:] = numpy.NaN
+                RayTrace[q,16:22,w:] = numpy.NaN
+                break 
             
             X = X0 + Lmin1*Delta
             Y = Y0 + Mmin1*Delta
             Z = Nmin1*Delta
             
-            check1 = 1   # The ray meet the surface
+            # The ray i meet the surface k
+            check1 = 1
             
             #Refraction
             
@@ -122,7 +131,8 @@ def makeTrace(RayTrace,i,k):
             M = (1/np)*(n*Mmin1 - K*Y )
             N = (1/np)*(n*Nmin1 - K*Z + np*CosIp - n*CosI)
             
-            check2= L**2 + M**2 + N**2 - 1
+            #Check1 and Check for direction cosines
+            check2 = int(check1 and numpy.isclose((L**2+M**2+N**2),1))
             
             # Replace
             
@@ -149,7 +159,6 @@ def makeTrace(RayTrace,i,k):
             RayTrace[q,20,w] = M
             RayTrace[q,21,w] = N
             RayTrace[q,22,w] = check2
-                
                 
     
     return RayTrace
@@ -178,9 +187,12 @@ if __name__ == '__main__':
     from pto_src import PointSource
     from opt_sys import OpSysData
     
-    pto1  = PointSource([0,1,0],635)
+    pto1  = PointSource([0,1,0],1040)
     syst1 = OpSysData()
-    syst1.addSurface(10,0.005,1.42,1)
+    syst1.addSurface(10,0.005,'N-BK7')
+    syst1.addSurface(10,5,1.42)
+    syst1.addSurface(10,0.005,'N-K5')
     
     design1 = Trace(pto1.RayList,syst1.SurfaceData)
+    
     
