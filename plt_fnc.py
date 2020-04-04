@@ -8,13 +8,18 @@ import math
 import matplotlib.patches
 from numpy import pi
 
-#Missing: plot aperture position
 
-def plotSystem(optSystem):
+def plotSystem(optSystem,apRadius=1.0, apIndex=1,lensData=[]):
+    # LensData=[[lens_radious]]
     #number of surfaces
     surf_len = len(optSystem.SurfaceData)
-    aperture = optSystem.Aperture[0]
-    apertureIndex = optSystem.Aperture[1]
+    
+    #Check if the lens radius are complete
+    lensRadius =[]
+    if len(lensData) == surf_len:
+        lensRadius = lensData
+    else:
+        lensRadius = [apRadius for q in range(surf_len)]
     
     #list the Z coordinates
     z0=[]
@@ -36,21 +41,21 @@ def plotSystem(optSystem):
     yP=[]
     for q in range(surf_len):
         if q == 0 or q==(surf_len-1):                          #Skipt the first and last surface
-            yP.append([z0[q],+aperture])
+            yP.append([z0[q],+lensRadius[q]])
         else:
             if optSystem.SurfaceData[q][1] == 0:               #Check curvature different from 0
-                yP.append([z0[q],+aperture])
+                yP.append([z0[q],+lensRadius[q]])
             else:
                 radius = 1.0/optSystem.SurfaceData[q][1] 
-                if abs(aperture/radius) > 1:                   #Check size
+                if abs(+lensRadius[q]/radius) > 1:                   #Check size
                     yP.append([z0[q]+radius, +abs(radius)])
                 else:
-                    #r**2=aperture**2+b**2, zSag = (-)r+b or [+]r-b
-                    b = math.sqrt(radius**2-aperture**2)
+                    #r**2=apRadius**2+b**2, zSag = (-)r+b or [+]r-b
+                    b = math.sqrt(radius**2-+lensRadius[q]**2)
                     if radius < 0:                             #Decide sag direction
-                        yP.append([z0[q]+radius+b,+aperture])
+                        yP.append([z0[q]+radius+b,+lensRadius[q]])
                     else:
-                        yP.append([z0[q]+radius-b,+aperture])
+                        yP.append([z0[q]+radius-b,+lensRadius[q]])
 
   
     #List additional connection points // 'NA': Not applicable
@@ -78,21 +83,22 @@ def plotSystem(optSystem):
     
     # Optical axis line
     lines2D.append(matplotlib.lines.Line2D((z0[0],z0[-1]),(0,0)
-                                           ,c='black',lw=1.0,ls='-'))
+                                           ,c='black',lw=1.0,ls='--'))
     
     # Surfaces
     for q in range(surf_len):
-        if optSystem.SurfaceData[q][1] == 0:
+        #Plot first surface, last surface and curvature equal zero as planes
+        if  q == 0 or q==(surf_len-1) or optSystem.SurfaceData[q][1] == 0:
             lines2D.append(matplotlib.lines.Line2D((yP[q][0],yP[q][0])
                                                   ,(yP[q][1],-yP[q][1])
                                                   ,c='black',lw=1.0,ls='-'))
         else:
             radius = 1.0/optSystem.SurfaceData[q][1] 
             diam = abs(2*radius)
-            if abs(aperture/radius) > 1:
+            if abs(+lensRadius[q]/radius) > 1:
                 theta = 90.0
             else:
-                theta = math.asin(abs(aperture/radius))*(180/pi)
+                theta = math.asin(abs(+lensRadius[q]/radius))*(180/pi)
             
             if radius < 0:
                 angleRot = 0
@@ -125,11 +131,11 @@ def plotSystem(optSystem):
                                                       ,(-yP[q][1],-conP[q][1],-yP[q+1][1])
                                                       ,c='black',lw=1.0,ls='-'))
 
-    # Aperture stop
+    # apRadius stop
     HIGH=1.5
-    lines2D.append(matplotlib.lines.Line2D((z0[apertureIndex],z0[apertureIndex]),(aperture,aperture*HIGH)
+    lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(apRadius,apRadius*HIGH)
                                            ,c='black',lw=2.0,ls='-'))
-    lines2D.append(matplotlib.lines.Line2D((z0[apertureIndex],z0[apertureIndex]),(-aperture,-aperture*HIGH)
+    lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(-apRadius,-apRadius*HIGH)
                                            ,c='black',lw=2.0,ls='-'))
     
     return surfPatch,lines2D
@@ -140,17 +146,18 @@ if __name__ == '__main__':
     
     syst1 = OpSysData()
     syst1.addSurface(2,0.2,1.5)
-    syst1.addSurface(2,0.2,1.1)
+    syst1.addSurface(4,0.2,1.1)
     syst1.addSurface(3,3,1)
     syst1.addSurface(4,0.4,1.8)
-    #syst1.changeSurface(1,0.1,2,1)
-    #syst1.changeAperture(2,1.0)
+    #syst1.changeSurface(4,1,2,surfIndex=0)
+    #syst1.changeSurface(4,1,2,surfIndex=5)
+    #syst1.changeapRadius(2,1.0)
 
-    #syst1.invertSurfaceOrder(4,5)
+    #syst1.invertSurfaceOrder(0,5)
     #syst1.invertSurfaceOrder(1,3)
-   # print(syst1.SurfaceData)
+    #print(syst1.SurfaceData)
     
-    arcs,line2d = plotSystem(syst1)
+    arcs,line2d = plotSystem(syst1,lensData=[1,2,1,1,1,1])
     
     fig, ax = plt.subplots()
     for q in arcs:

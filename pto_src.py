@@ -15,7 +15,6 @@ class PointSource:                                     #Only for point source, f
             x,y,z: list, position in the object plane
             LMN : list (cosX, cosY, cosZ), cosine directors for each direction, [rads]
             lambda: double, wavelength
-            rayType: int, The type is represented by a number
             
             #           on axis                     off axis
             0           optical axis                chief ray

@@ -2,7 +2,7 @@
 
 The module pyTrace is based on two concepts:
 
-a) ray: A ray is a list of elements describing the ray position, direction and 
+1.1) ray: A ray is a list of elements describing the ray position, direction and 
 wavelength.
 
     ray0 = [[X,Y,Z], [L,M,N],wvln]
@@ -10,7 +10,7 @@ wavelength.
     [L,M,N]: direction cosines
     wvln:    wavelength in µm
     
-b) surface: A surface is a list of elements describing the surface distance, 
+1.2) surface: A surface is a list of elements describing the surface distance, 
 curvature, refraction index (material) and surface type.
 
     surf0 = [d,C,n,'type']
@@ -21,7 +21,7 @@ curvature, refraction index (material) and surface type.
     
 From this two concepts the following classes are created:
 
-c) ray_src: a ray surce is a collection of ray (lists), where their relative 
+2.1) ray_src: a ray surce is a collection of ray (lists), where their relative 
             position (index) has a particular roll.
             
     #           on axis                     off axis
@@ -38,14 +38,30 @@ c) ray_src: a ray surce is a collection of ray (lists), where their relative
     ray2: is directed to the meridional AP lower boundary
     ray3: is directed to the sagital positive AP boundary
     ray4: is directed to the sagital negative AP boundary
-    ray5,6,7...: rays directed to the AP
+    ray5,6,7...: rays directed in any direction to the AP
     
-d) opt_sys: a optical system is a collection of surfaces (lists), where their
-            relative position (index) has a particular roll.
+    Two sub-types of ray source are supported; point source and infinity source. 
+    On the point source all the rays share the same origin ([X,Y,Z]) but differ in
+    the direction. On the infinity source all the rays share the same direction 
+    ([L,M,N]) but differ in the origin.
+    
+2.2) opt_sys: a optical system is a collection of surfaces (lists), where their
+              relative position (index) has a particular roll.
             
     #           roll              
     0           object
     1           surface
     ...           
     N           image (last surface) 
+    
+Finally with a ray source and an optical system an optical design are defined.
+
+3.1) opt_dsg: A optical design accepts a ray source and a optical system to 
+              to perform a ray trace. An important attribute of the optical 
+              design is the position and size of the AP. With this information
+              the optical system can calculate the rays direction and optical 
+              properties of the system.
+              
+3.2) trace: A trace is a function where the rays are propagated through the 
+            surfaces. It is based on propagation Welford's method 
        
