@@ -140,6 +140,28 @@ def plotSystem(optSystem,apRadius=1.0, apIndex=1,lensData=[]):
     
     return surfPatch,lines2D
 
+def plotRayTrace(rayTrace):
+    #number of surfaces
+    dim = rayTrace.shape
+    print dim
+    lines2D  = []
+    q=0
+    
+    for q in range(dim[0]):
+        #list the Z coordinates
+        z0=[]
+        for w in range(dim[2]):
+            if w == 0:
+                z0.append(0)
+            else:
+                z0.append(z0[w-1] + rayTrace[q][0][w-1])
+    
+        for w in range(1,dim[2]):
+            lines2D.append(matplotlib.lines.Line2D((z0[w-1],z0[w])
+                                                  ,(rayTrace[q][9][w-1],rayTrace[q][9][w])))    
+    
+    return lines2D
+
 if __name__ == '__main__':
     from opt_sys import OpSysData
     import matplotlib.pyplot as plt
@@ -152,12 +174,14 @@ if __name__ == '__main__':
     #syst1.changeSurface(4,1,2,surfIndex=0)
     #syst1.changeSurface(4,1,2,surfIndex=5)
     #syst1.changeapRadius(2,1.0)
+    lensData=[1,2,1,1,1,1]
 
-    #syst1.invertSurfaceOrder(0,5)
+    #syst1.invertSurfaceOrder(0,5);lensData=[1,1,1,1,2,1]
+    
     #syst1.invertSurfaceOrder(1,3)
     #print(syst1.SurfaceData)
     
-    arcs,line2d = plotSystem(syst1,lensData=[1,2,1,1,1,1])
+    arcs,line2d = plotSystem(syst1,lensData=lensData)
     
     fig, ax = plt.subplots()
     for q in arcs:
@@ -168,3 +192,6 @@ if __name__ == '__main__':
     plt.xlim([-5,+35])
     plt.ylim([-4,+4])
     plt.show()
+    
+    
+    #line2d_ray = plotRayTrace(rayTrace) 

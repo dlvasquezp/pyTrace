@@ -22,8 +22,11 @@ class OpDesign:
            Plot rays
     '''
     def __init__(self,pto,optSys):
-        self.pto    = pto
-        self.optSys = optSys
+        self.pto     = pto
+        self.optSys  = optSys
+        #Create apeture stop
+        self.apIndex = 1
+        self.apRadius= 1.0 
         #Create on-axis pointsource
         self.pto_onaxis = PointSource([0,0,0],self.pto.Lambda) 
         #Propagate
@@ -38,16 +41,16 @@ class OpDesign:
     def propagate(self):
         #Propagate rays indices until 5
         for rayIndex in range(5):
-            LMN     = self.propagate_ray (self.pto       ,self.optSys,rayIndex)
+            LMN     = self.propagate_ray (self.pto, rayIndex)
             self.pto.ChangeCosineDir(rayIndex,LMN)
-            LMN     = self.propagate_ray (self.pto_onaxis,self.optSys,rayIndex)
+            LMN     = self.propagate_ray (self.pto_onaxis, rayIndex)
             self.pto_onaxis.ChangeCosineDir(rayIndex,LMN)
             
     def autofocus(self):
         #Perform optimization
         rayIndex = 1
         x0 = self.optSys.SurfaceData[-2][0]
-        res= minimize(mf_ray_XYZ0, x0,args=(self.pto_onaxis,self.optSys,rayIndex),method='Nelder-Mead')
+        res= minimize(mf_ray_XYZ0, x0,args=(self,rayIndex),method='Nelder-Mead')
         
         #Replace value
         x1 = res.x
@@ -56,32 +59,11 @@ class OpDesign:
         self.traceDesign()
         
 
-    def propagate_ray (self,pto,optSys,rayIndex): 
-        
-        #initialValue = []
-        #numberStep   = 10
-        #for q in  range(numberStep):
-        #    if q == 0:
-        #        initialValue.append([0,0]) 
-        #    else:
-        #        initialValue.append([0,uniform(-0.02,0.02)]) 
-
-        #print (initialValue)        
-        #for x0 in initialValue:
+    def propagate_ray (self,pto,rayIndex):  
+        #Perform optimization
         x0  = [0,0]
-        res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Nelder-Mead')
-            #print(x0,res.fun)
-            #if res.fun < 1e-3:
-            #    print('solved:'+ str(res.fun))
-            #    break
-        #Find value
-        #x0  = [0,0]
-        #bnds =[(-10e6,+10e6),(-10e6,+10e6)]
-        #res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='SLSQP', bounds=bnds)
-        #res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Nelder-Mead')
-        
-        #res = minimize(mf_ray_LMN, x0,args=(pto,optSys,rayIndex),method='Newton-CG')
-        #print(res.fun)
+        res = minimize(mf_ray_LMN, x0, args=(self,pto,rayIndex), method='Nelder-Mead')
+
         # Replace value 
         x1 = res.x
         norm     = math.sqrt(1.0 + x1[0]**2 + x1[1]**2) 
@@ -97,11 +79,13 @@ if __name__=='__main__':
     # Instantiate optical system
     syst1 = OpSysData()
     syst1.addSurface(10,0.005,1.42,1)
-    syst1.changeAperture(2,3.0)
+    syst1.addSurface(4,0.001,1.5,1)
     
     # Instantiate point source
     pto1  = PointSource([0,1,0],635)
     
     design1  = OpDesign(pto1,syst1)
-    RayTrace = design1.RayTrace
+    design1.autofocus()
+    
+    RayTrace = design1.RayTrace_onaxis
     Pto      = design1.pto
