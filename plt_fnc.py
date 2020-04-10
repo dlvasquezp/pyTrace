@@ -157,7 +157,8 @@ def plotRayTrace(rayTrace):
                 z0.append(z0[w-1] + rayTrace[q][0][w-1])
     
         for w in range(1,dim[2]):
-            lines2D.append(matplotlib.lines.Line2D((z0[w-1],z0[w])
+            lines2D.append(matplotlib.lines.Line2D((z0[w-1]+ rayTrace[q][7][w-1]
+                                                   ,z0[w]  + rayTrace[q][7][w])
                                                   ,(rayTrace[q][9][w-1],rayTrace[q][9][w])))    
     
     return lines2D

@@ -4,7 +4,14 @@ Created on Fri Mar 20 20:43:53 2020
 
 @author: David Vasquez
 """
+'''
 import numpy as np
+
+class RaySource:
+    def __init__(self, XYZ,LMN,Lambda):                   
+        # Initialize ray list
+        self.RayList = []
+ '''       
 
 class PointSource:                                     #Only for point source, for points at infinity other function is needed
     '''
@@ -49,7 +56,7 @@ class PointSource:                                     #Only for point source, f
     def ChangeCosineDir(self, RayIndex, LMN):
         assert np.isclose(np.sum(np.power(LMN,2)),1),'Not valid direction cosines'
         self.RayList[RayIndex][1]=LMN
-
+        
         
 if __name__=='__main__':
     # instantiate

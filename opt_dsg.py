@@ -19,7 +19,6 @@ class OpDesign:
     opt_sys: optical system
     
     Falta: Documentacion
-           Plot rays
     '''
     def __init__(self,pto,optSys):
         self.pto     = pto

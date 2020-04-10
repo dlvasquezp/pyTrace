@@ -117,7 +117,7 @@ if __name__=='__main__':
     pto1  = PointSource([0,1,0],635)
     syst1 = OpSysData()
     syst1.addSurface(2,0.05,1.7)
-    syst1.addSurface(10,-0.5,1.5)
+    syst1.addSurface(10,-0.5,1.4)
     #syst1.changeAperture(1,surfIndex = 1)
     
     design1  = OpDesign(pto1,syst1)
@@ -130,8 +130,6 @@ if __name__=='__main__':
         fig.gca().add_patch(q)
     for w in line2d:
         ax.add_line(w)
-    
-    
     
     
     #design1 = Trace(pto1.RayList,syst1.SurfaceData)
