@@ -80,7 +80,7 @@ the values need for the design evaluation:
               Each optical design has the following attributes:
               
               Arguments passed by the user:
-              ray_src: ray source
+              dsg_src: point/infinity source
               opt_sys: optical system
               apr_rad: aperture stop radius 
               apr_ind: aperture stop index
@@ -101,6 +101,13 @@ the values need for the design evaluation:
               essential_XYZ: calculate the position XYZ of a source at infiniy
                              "essential" rays. It returns the difference (error) 
                              between the ray position and the aperture coordinate.
+                             
+"Readability counts"
+Class: CapWords
+Function: all lower case + underscore
+variables: CapWords + short name
+
+
               
               
               

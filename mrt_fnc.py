@@ -28,7 +28,7 @@ def mf_ray_LMN (x0,*arg):
     RayList       = arg[1].RayList
     indexRay      = arg[2]
     
-    #Calculate director cosines
+    #Calculate direction cosines
     norm     = math.sqrt(1.0 + vector[0]**2 + vector[1]**2) 
     cosDirX  = vector[0]/norm
     cosDirY  = vector[1]/norm
