@@ -27,10 +27,8 @@ def Trace(RayList,SurfaceData):
             The position is represented by the index.
             In the array, i represent the ray, j the data and k the surface
             
-    Falta, the se puedan pasar listas the listas para escalarlo
-    calcular el indice de refraccion
-    implementar excepciones
-    corregir cuando no se encuentren los rayos con las superficies
+    When the rays are not propagated, the values are NaN
+    Missing: scale the function to list of points and surfaces Data
     '''
     i = len(RayList)                          # Ray i
     j = 23                                    # [d,c,n][X0,Y0][F,G,Delta][X,Y,Z][check1][alfa,beta,gamma][lambda][cosI,CosIp][K][L,M,N][Check2]
@@ -101,6 +99,7 @@ def makeTrace(RayTrace,i,k):
             try:
                 Delta = F / (G + math.sqrt(G**2-c*F) )
             except ValueError:
+                #Surface not found
                 RayTrace[q,3:11,w:]  = numpy.NaN
                 RayTrace[q,12:15,w:] = numpy.NaN
                 RayTrace[q,16:22,w:] = numpy.NaN
@@ -124,7 +123,16 @@ def makeTrace(RayTrace,i,k):
             
             
             CosI  = math.sqrt(G**2 - c*F)
-            CosIp = (1/np)*math.sqrt(np**2 - (n**2)*(1-CosI**2))
+            
+            try:
+                CosIp = (1/np)*math.sqrt(np**2 - (n**2)*(1-CosI**2))
+            except ValueError:
+                #ray reflected instead of refracted
+                RayTrace[q,3:11,w:]  = numpy.NaN
+                RayTrace[q,12:15,w:] = numpy.NaN
+                RayTrace[q,16:22,w:] = numpy.NaN
+                break
+            
             K = c*(np*CosIp - n*CosI) 
             
             L = (1/np)*(n*Lmin1 - K*X )
