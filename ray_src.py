@@ -38,15 +38,15 @@ class RaySource:
         self.check_arguments(wvln=wvln)
         self.RayList[Index][2] = wvln 
         
-    def check_arguments(self,XYZ=-1,LMN=-1,wvln=-1):
-        if XYZ !=-1:
+    def check_arguments(self,XYZ='nan',LMN='nan',wvln='nan'):
+        if XYZ !='nan':
             assert (all([isinstance(q,(int,float)) for q in XYZ]) 
                     and len(XYZ) == 3), 'Invalid XYZ vector'
-        if LMN !=-1:
+        if LMN !='nan':
             assert (all([isinstance(q,(int,float)) for q in LMN]) 
                     and len(LMN) == 3
                     and np.isclose(np.sum(np.power(LMN,2)),1)),'Invalid direction cosines'
-        if wvln !=-1:
+        if wvln !='nan':
             assert isinstance(wvln,(int,float)),'Invalid wavelength'
     
     @staticmethod        
@@ -84,9 +84,9 @@ class PointSource(RaySource):
     
     def __init__(self, XYZ, wvln):                   #Vectors as entry
         # Initialize ray list
-        self.Position = XYZ
+        self.Position   = XYZ
         self.Wavelength = wvln
-        self.RayList = []
+        self.RayList    = []
         
         # Initialize essential rays
         for q in range (5):
@@ -155,7 +155,6 @@ if __name__=='__main__':
     LMN=[0,1,0]
     pto2.change_LMN(LMN,0)
     print(pto1.RayList)
-    
     
     #InfinitySource
     pto3=InfinitySource([0,0,1],430)

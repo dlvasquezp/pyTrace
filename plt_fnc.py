@@ -6,11 +6,29 @@ Created on Tue Mar 31 20:33:47 2020
 """
 import math
 import matplotlib.patches
+import matplotlib.pyplot as plt
 from numpy import pi
+#from opt_sys import OpSysData
+#from opt_dsg import OpDesign
 
 
-def plotSystem(optSystem,apRadius=1.0, apIndex=1,lensData=[]):
-    # LensData=[[lens_radious]]
+def plot_system(optObj, lensData=[], fig=[], ax=[], show=False):
+    '''
+    plot_system accets either OpSysData or OpDesign
+    '''   
+    # Check class type
+    if optObj.__class__.__name__=='OpSysData':
+        optSystem = optObj
+        apRadius  = 1.0
+        apIndex   = -1
+    else:
+        if optObj.__class__.__name__=='OpDesign':
+            optSystem = optObj.optSys
+            apRadius  = optObj.aprRad
+            apIndex   = optObj.aprInd
+        else:
+            raise TypeError ('plot_system accets either OpSysData or OpDesign')
+
     #number of surfaces
     surf_len = len(optSystem.SurfaceData)
     
@@ -130,17 +148,36 @@ def plotSystem(optSystem,apRadius=1.0, apIndex=1,lensData=[]):
                 lines2D.append(matplotlib.lines.Line2D((yP[q][0],conP[q][0],yP[q+1][0])
                                                       ,(-yP[q][1],-conP[q][1],-yP[q+1][1])
                                                       ,c='black',lw=1.0,ls='-'))
-
-    # apRadius stop
     HIGH=1.5
-    lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(apRadius,apRadius*HIGH)
-                                           ,c='black',lw=2.0,ls='-'))
-    lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(-apRadius,-apRadius*HIGH)
-                                           ,c='black',lw=2.0,ls='-'))
+    if apIndex != -1:
+        # apRadius stop
+        lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(apRadius,apRadius*HIGH)
+                                               ,c='black',lw=2.0,ls='-'))
+        lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(-apRadius,-apRadius*HIGH)
+                                               ,c='black',lw=2.0,ls='-'))
     
-    return surfPatch,lines2D
+    
+    #Append arcs and lines to the figigure (fig) and axes (ax)
+    for q in surfPatch:
+        fig.gca().add_patch(q)
+    for w in lines2D:
+        ax.add_line(w)
+    
+    #Plot limits
+    xlim =[z0[0]-1,z0[-1]+1]
+    yPoints=[q[1] for q in yP]
+    maxY = max(yPoints)*1.1
+    ylim =[-maxY,+maxY]
+    
+    if show:
+        #fig, ax = plt.subplots()
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+        plt.show()
+    
+    return fig,ax,xlim,ylim
 
-def plotRayTrace(rayTrace):
+def plotRayTrace(rayTrace,fig,ax):
     #number of surfaces
     dim = rayTrace.shape
     print dim
@@ -161,38 +198,49 @@ def plotRayTrace(rayTrace):
                                                    ,z0[w]  + rayTrace[q][7][w])
                                                   ,(rayTrace[q][9][w-1],rayTrace[q][9][w])))    
     
-    return lines2D
+    for w in lines2D:
+        ax.add_line(w)
+    
+    return fig,ax
 
 if __name__ == '__main__':
+    from ray_src import PointSource
     from opt_sys import OpSysData
-    import matplotlib.pyplot as plt
+    from opt_dsg import OpDesign
+    #import matplotlib.pyplot as plt
     
     syst1 = OpSysData()
-    syst1.addSurface(2,0.2,1.5)
-    syst1.addSurface(4,0.2,1.1)
-    syst1.addSurface(3,3,1)
-    syst1.addSurface(4,0.4,1.8)
+    syst1.add_surface(2,+0.2,1.5)
+    syst1.add_surface(4,-0.2,1.1)
+    syst1.add_surface(3,-0.3,1)
+    syst1.add_surface(4,+0.4,1.8)
     #syst1.changeSurface(4,1,2,surfIndex=0)
     #syst1.changeSurface(4,1,2,surfIndex=5)
     #syst1.changeapRadius(2,1.0)
     lensData=[1,2,1,1,1,1]
+    
+    pto1  = PointSource([0,0.5,0],635)
+    
+    design1  = OpDesign(pto1,syst1,aprRad=1.0,aprInd=1)
 
     #syst1.invertSurfaceOrder(0,5);lensData=[1,1,1,1,2,1]
     
     #syst1.invertSurfaceOrder(1,3)
     #print(syst1.SurfaceData)
-    
-    arcs,line2d = plotSystem(syst1,lensData=lensData)
-    
     fig, ax = plt.subplots()
-    for q in arcs:
-        fig.gca().add_patch(q)
-    for w in line2d:
-        ax.add_line(w)
+    fig, ax, xlim, ylim = plot_system(design1,lensData=lensData,fig=fig,ax=ax,show=True)
+    fig, ax, = plotRayTrace(design1.raySrcTrace,fig,ax)
+    fig, ax, = plotRayTrace(design1.dsgPtoTrace,fig,ax)
     
-    plt.xlim([-5,+35])
-    plt.ylim([-4,+4])
-    plt.show()
+    #fig, ax = plt.subplots()
+    #for q in arcs:
+    #    fig.gca().add_patch(q)
+    #for w in line2d:
+    #    ax.add_line(w)
+    #
+    #plt.xlim([-5,+35])
+    #plt.ylim([-4,+4])
+    #plt.show()
     
     
     #line2d_ray = plotRayTrace(rayTrace) 

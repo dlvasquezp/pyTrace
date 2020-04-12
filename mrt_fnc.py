@@ -23,8 +23,8 @@ def mf_ray_LMN (x0,*arg):
     #reference the values
     vector        = x0 
     SurfaceData   = arg[0].optSys.SurfaceData
-    ApertureRadio = arg[0].apRadius
-    ApertureIndex = arg[0].apIndex
+    ApertureRadio = arg[0].aprRad
+    ApertureIndex = arg[0].aprInd
     RayList       = arg[1].RayList
     indexRay      = arg[2]
     
@@ -36,7 +36,7 @@ def mf_ray_LMN (x0,*arg):
     LMN      = [cosDirX,cosDirY,cosDirZ]
         
     #replace cosine director    
-    arg[1].ChangeCosineDir(indexRay,LMN)
+    arg[1].change_LMN(LMN,indexRay)
     
     #Make Raytrace
     RayTrace  = Trace(RayList,SurfaceData)
@@ -85,15 +85,16 @@ def mf_ray_XYZ0 (x0,*arg):
     # arg[1] must be int [0,1,2,3,4]
     
     #Copy the values
-    dist        = x0 
-    RayList     = arg[0].pto_onaxis.RayList
+    dist        = x0[0] 
+    RayList     = arg[0].dsgPtoSrc.RayList
     SurfaceData = arg[0].optSys.SurfaceData
     indexRay    = arg[1]
     
     #replace surface distance
     surf_len = len(SurfaceData)
     surf_idx = (surf_len-2) 
-    arg[0].optSys.changeSurface(dist,SurfaceData[surf_idx][1],SurfaceData[surf_idx][2],surfIndex=surf_idx)
+    print (dist)
+    arg[0].optSys.change_surface(dist,SurfaceData[surf_idx][1],SurfaceData[surf_idx][2],surfIndex=surf_idx)
     
     #Make Raytrace
     RayTrace  = Trace(RayList,SurfaceData)

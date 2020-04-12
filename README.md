@@ -80,19 +80,19 @@ the values need for the design evaluation:
               Each optical design has the following attributes:
               
               Arguments passed by the user:
-              dsg_src: point/infinity source
-              opt_sys: optical system
-              apr_rad: aperture stop radius 
-              apr_ind: aperture stop index
+              usrSrc: user defined point/infinity source
+              optSys: optical system
+              aprRad: aperture stop radius 
+              aprInd: aperture stop index
               
               Attributes created when instantiated:
-              dsg_pto: point source at position [0,0,0] 
-              dsg_inf: source at infinity with direction [0,0,1]
+              dsgPtoSrc: point source at position [0,0,0] 
+              dsgInfSrc: source at infinity with direction [0,0,1]
               
               RayTrace calculated when instantiated:
-              ray_src_trace -> ray source and optical system
-              dsg_pto_trace -> point source and optical system
-              dsg_inf_trace -> source at infinity and optical system
+              raySrcTrace -> ray source and optical system
+              dsgPtoTrace -> point source and optical system
+              dsgInfTrace -> source at infinity and optical system
               
               Merit functions used in the process:
               essential_LMN: calculate the direction LMN of the point source
@@ -101,7 +101,9 @@ the values need for the design evaluation:
               essential_XYZ: calculate the position XYZ of a source at infiniy
                              "essential" rays. It returns the difference (error) 
                              between the ray position and the aperture coordinate.
-                             
+
+Final comments:
+                            
 "Readability counts"
 Class: CapWords
 Function: all lower case + underscore
