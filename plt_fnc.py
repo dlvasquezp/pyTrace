@@ -8,15 +8,13 @@ import math
 import matplotlib.patches
 import matplotlib.pyplot as plt
 from numpy import pi
-#from opt_sys import OpSysData
-#from opt_dsg import OpDesign
 
 
-def plot_system(optObj, lensData=[], fig=[], ax=[], show=False):
+def plot_system(optObj, fig=[], ax=[], lensData=[],  show=False):
     '''
     plot_system accets either OpSysData or OpDesign
     '''   
-    # Check class type
+    # Check optObj type
     if optObj.__class__.__name__=='OpSysData':
         optSystem = optObj
         apRadius  = 1.0
@@ -28,13 +26,19 @@ def plot_system(optObj, lensData=[], fig=[], ax=[], show=False):
             apIndex   = optObj.aprInd
         else:
             raise TypeError ('plot_system accets either OpSysData or OpDesign')
-
+    
+    #Check figure and axis instance
+    assert fig.__class__.__name__=='Figure'     ,'Invalid figure [fig] instance'
+    assert ax.__class__.__name__ =='AxesSubplot','Invalid axes [ax] instance'
+    
     #number of surfaces
     surf_len = len(optSystem.SurfaceData)
     
     #Check if the lens radius are complete
     lensRadius =[]
     if len(lensData) == surf_len:
+        assert (all([isinstance(q,(int,float)) for q in lensData])),'Invalid data type in lensData'
+        assert (all([ q!=0 for q in lensData])),'Invalid radius value in lensData'
         lensRadius = lensData
     else:
         lensRadius = [apRadius for q in range(surf_len)]
@@ -69,16 +73,17 @@ def plot_system(optObj, lensData=[], fig=[], ax=[], show=False):
                     yP.append([z0[q]+radius, +abs(radius)])
                 else:
                     #r**2=apRadius**2+b**2, zSag = (-)r+b or [+]r-b
-                    b = math.sqrt(radius**2-+lensRadius[q]**2)
+                    b = math.sqrt(radius**2-lensRadius[q]**2)
                     if radius < 0:                             #Decide sag direction
                         yP.append([z0[q]+radius+b,+lensRadius[q]])
                     else:
                         yP.append([z0[q]+radius-b,+lensRadius[q]])
 
-  
-    #List additional connection points // 'NA': Not applicable
-    #                                  // [0,0]: Straight line
-    #                                  // [z,y]: connection point coordinate
+    ''' 
+    List additional connection points // 'NA': Not applicable
+                                      // [0,0]: Straight line
+                                      // [z,y]: connection point coordinate
+    '''
     conP=[]
     for q in range(surf_len):
         if q == (surf_len-1):                    #Skip the last surface
@@ -148,12 +153,30 @@ def plot_system(optObj, lensData=[], fig=[], ax=[], show=False):
                 lines2D.append(matplotlib.lines.Line2D((yP[q][0],conP[q][0],yP[q+1][0])
                                                       ,(-yP[q][1],-conP[q][1],-yP[q+1][1])
                                                       ,c='black',lw=1.0,ls='-'))
+    
+    # Plot aperture stop
     HIGH=1.5
     if apIndex != -1:
-        # apRadius stop
-        lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(apRadius,apRadius*HIGH)
+        #lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(apRadius,apRadius*HIGH)
+        #                                       ,c='black',lw=2.0,ls='-'))
+        #lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(-apRadius,-apRadius*HIGH)
+        #                                       ,c='black',lw=2.0,ls='-'))
+        apX=[]
+        if optSystem.SurfaceData[apIndex][1] == 0:               #Check curvature different from 0
+                apX.append(z0[apIndex])
+        else:
+            radius = 1/optSystem.SurfaceData[apIndex][1]
+            #r**2=apRadius**2+b**2, zSag = (-)r+b or [+]r-b
+            b = math.sqrt(radius**2-apRadius**2)
+            if radius < 0:                             #Decide sag direction
+                apX.append(z0[apIndex]+radius+b)
+            else:
+                apX.append(z0[apIndex]+radius-b)
+        
+        
+        lines2D.append(matplotlib.lines.Line2D((apX[0],apX[0]),(+apRadius,+apRadius*HIGH)
                                                ,c='black',lw=2.0,ls='-'))
-        lines2D.append(matplotlib.lines.Line2D((z0[apIndex],z0[apIndex]),(-apRadius,-apRadius*HIGH)
+        lines2D.append(matplotlib.lines.Line2D((apX[0],apX[0]),(-apRadius,-apRadius*HIGH)
                                                ,c='black',lw=2.0,ls='-'))
     
     
@@ -166,23 +189,25 @@ def plot_system(optObj, lensData=[], fig=[], ax=[], show=False):
     #Plot limits
     xlim =[z0[0]-1,z0[-1]+1]
     yPoints=[q[1] for q in yP]
-    maxY = max(yPoints)*1.1
+    maxY = max(yPoints)+1
     ylim =[-maxY,+maxY]
     
-    if show:
-        #fig, ax = plt.subplots()
-        plt.xlim(xlim)
-        plt.ylim(ylim)
-        plt.show()
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
     
-    return fig,ax,xlim,ylim
+    if show:
+        fig.show()
+    
+    return fig,ax
 
-def plotRayTrace(rayTrace,fig,ax):
+def plot_rayTrace(rayTrace, fig=[], ax=[], show=False):
+    #Check instances
+    assert rayTrace.__class__.__name__=='ndarray','Invalid rayTrace' 
+    assert fig.__class__.__name__=='Figure'      ,'Invalid figure [fig] instance'
+    assert ax.__class__.__name__ =='AxesSubplot' ,'Invalid axes [ax] instance'
     #number of surfaces
     dim = rayTrace.shape
-    print dim
     lines2D  = []
-    q=0
     
     for q in range(dim[0]):
         #list the Z coordinates
@@ -201,46 +226,53 @@ def plotRayTrace(rayTrace,fig,ax):
     for w in lines2D:
         ax.add_line(w)
     
+    #Check Plot limits
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    newXlim = [min(z0),max(z0)]
+    newYlim = [rayTrace[:,9,:].min(),rayTrace[:,9,:].max()]
+
+    #import pdb; pdb.set_trace()
+    
+    if newXlim[0] < xlim[0]: xlim = [newXlim[0]-1,   xlim[1]  ]
+    if newXlim[1] > xlim[1]: xlim = [   xlim[0]  ,newXlim[1]+1]
+    if newYlim[0] < ylim[0]: ylim = [newYlim[0]-1,   ylim[1]  ]
+    if newYlim[1] > ylim[1]: ylim = [   ylim[0]  ,newYlim[1]+1]
+
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)    
+    
+    if show:
+        fig.show()
+    
     return fig,ax
 
 if __name__ == '__main__':
     from ray_src import PointSource
     from opt_sys import OpSysData
     from opt_dsg import OpDesign
-    #import matplotlib.pyplot as plt
-    
+    #Optical system
     syst1 = OpSysData()
+    syst1.add_surface(2,0,1)
     syst1.add_surface(2,+0.2,1.5)
+    syst1.add_surface(1,-0.2,1)
     syst1.add_surface(4,-0.2,1.1)
+    #syst1.add_surface(0,0,1)
     syst1.add_surface(3,-0.3,1)
     syst1.add_surface(4,+0.4,1.8)
-    #syst1.changeSurface(4,1,2,surfIndex=0)
-    #syst1.changeSurface(4,1,2,surfIndex=5)
-    #syst1.changeapRadius(2,1.0)
-    lensData=[1,2,1,1,1,1]
-    
+    lensData=[2,1,3,2,2,1.5,1.5,1]
+    #Ray source
     pto1  = PointSource([0,0.5,0],635)
-    
-    design1  = OpDesign(pto1,syst1,aprRad=1.0,aprInd=1)
-
-    #syst1.invertSurfaceOrder(0,5);lensData=[1,1,1,1,2,1]
-    
-    #syst1.invertSurfaceOrder(1,3)
-    #print(syst1.SurfaceData)
+    #Plot Optical system
+    #syst1.invert_surface_order(0,5)#;lensData=[1,1,1,1,2,1]
     fig, ax = plt.subplots()
-    fig, ax, xlim, ylim = plot_system(design1,lensData=lensData,fig=fig,ax=ax,show=True)
-    fig, ax, = plotRayTrace(design1.raySrcTrace,fig,ax)
-    fig, ax, = plotRayTrace(design1.dsgPtoTrace,fig,ax)
+    plot_system(syst1,fig=fig,ax=ax,lensData=lensData,show=True)
+    #Plot Optical design
+    design1  = OpDesign(pto1,syst1,aprRad=1.5,aprInd=2)
+    fig, ax = plt.subplots()
+    fig, ax = plot_system(design1,lensData=lensData,fig=fig,ax=ax,show=True)
+    fig, ax = plot_rayTrace(design1.raySrcTrace,fig=fig,ax=ax)
+    fig, ax = plot_rayTrace(design1.dsgPtoTrace,fig=fig,ax=ax)
+    fig, ax = plot_rayTrace(design1.dsgInfTrace,fig=fig,ax=ax)
     
-    #fig, ax = plt.subplots()
-    #for q in arcs:
-    #    fig.gca().add_patch(q)
-    #for w in line2d:
-    #    ax.add_line(w)
-    #
-    #plt.xlim([-5,+35])
-    #plt.ylim([-4,+4])
-    #plt.show()
-    
-    
-    #line2d_ray = plotRayTrace(rayTrace) 
+ 

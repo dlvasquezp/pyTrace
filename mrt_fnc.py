@@ -4,22 +4,24 @@ Created on Sat Mar 21 06:47:46 2020
 
 @author: David Vasquez
 """
-import math
+
 from ray_trc import Trace
 
-def mf_ray_LMN (x0,*arg):
+def LMN_apertureStop (x0,*arg):
     '''
     Merit function to calculate the error produced by the rays propaged in the 
-    x0 direction [x0[0],x0[1],1] 
+    direction [x0[0],x0[1],1] and the aperture stop
     
     x0:   (list) [vector_compX, vector_comp_y] 
-    *arg: (list) [object Optical desing, object ray source, int indexRay]
+    arg: (list) [object Optical desing, object ray source, int indexRay]
     
-    '''
-    # arg[0] must be Optical design
-    # arg[1] must be ray source
-    # arg[2] must be int [0,1,2,3,4]
-    
+    arg[0] must be Optical design
+    arg[1] must be point source (pointSource)
+    arg[2] must be int [0,1,2,3,4]
+    '''   
+    assert arg[0].__class__.__name__=='OpDesign' ,'arg[0] must be an OpDesign object' 
+    assert arg[1].__class__.__name__=='PointSource' ,'arg[1] must be a PointSource object' 
+    assert arg[2] >=0 and arg[2] <=4, 'Invalid ray index (indexRay)'
     #reference the values
     vector        = x0 
     SurfaceData   = arg[0].optSys.SurfaceData
@@ -29,62 +31,91 @@ def mf_ray_LMN (x0,*arg):
     indexRay      = arg[2]
     
     #Calculate direction cosines
-    norm     = math.sqrt(1.0 + vector[0]**2 + vector[1]**2) 
-    cosDirX  = vector[0]/norm
-    cosDirY  = vector[1]/norm
-    cosDirZ  = 1.0/norm 
-    LMN      = [cosDirX,cosDirY,cosDirZ]
-        
+    LMN = arg[1].calc_direcCos([vector[0],vector[1],1])  
     #replace cosine director    
     arg[1].change_LMN(LMN,indexRay)
-    
     #Make Raytrace
     RayTrace  = Trace(RayList,SurfaceData)
-    
     #Calculate error
-    error = -1
-    if indexRay == 0:
-        error    = (abs(RayTrace[indexRay, 9 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 8 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 7 ,ApertureIndex]))
-        
-    if indexRay == 1:
-        error    = (abs(+ApertureRadio - RayTrace[indexRay, 9 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 8 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 7 ,ApertureIndex]))
-                    
-    if indexRay == 2:
-        error    = (abs(-ApertureRadio - RayTrace[indexRay, 9 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 8 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 7 ,ApertureIndex]))
-                   
-    if indexRay == 3:
-        error    = (abs(+ApertureRadio - RayTrace[indexRay, 8 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 9 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 7 ,ApertureIndex]))
-        
-    if indexRay == 4:
-        error    = (abs(-ApertureRadio - RayTrace[indexRay, 8 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 9 ,ApertureIndex])
-                   +abs(RayTrace[indexRay, 7 ,ApertureIndex]))
-    
+    error = ap_error_calc(RayTrace,ApertureRadio,indexRay,ApertureIndex)
     
     return error
 
-def mf_ray_XYZ0 (x0,*arg):
+def XYZ_apertureStop (x0,*arg):
     '''
-    Merit function to calculate the error produced by the ray 0 propaged in the 
-    last surface (image) 
+    Merit function to calculate the error produced by the rays propaged in the 
+    position [x0[0],x0[1],0] and the aperture stop
     
-    x0:   (float) distance
+    x0:   (list) [position X, position y] 
+    arg: (list) [object Optical desing, object ray source, int indexRay]
+    
+    arg[0] must be Optical design
+    arg[1] must be source at infinity (infinitySource)
+    arg[2] must be int [0,1,2,3,4]
+    '''
+    assert arg[0].__class__.__name__=='OpDesign' ,'arg[0] must be an OpDesign object' 
+    assert arg[1].__class__.__name__=='InfinitySource' ,'arg[1] must be an InfinitySource object' 
+    assert arg[2] >=0 and arg[2] <=4, 'Invalid ray index (indexRay)'
+    
+    #reference the values
+    vector        = x0 
+    SurfaceData   = arg[0].optSys.SurfaceData
+    ApertureRadio = arg[0].aprRad
+    ApertureIndex = arg[0].aprInd
+    RayList       = arg[1].RayList
+    indexRay      = arg[2]    
+    
+    #Rewrite position vector
+    XYZ = [vector[0],vector[1],0]   
+    #replace cosine director    
+    arg[1].change_XYZ(XYZ,indexRay)
+    #Make Raytrace
+    RayTrace  = Trace(RayList,SurfaceData)
+    #Calculate error
+    error = ap_error_calc(RayTrace,ApertureRadio,indexRay,ApertureIndex)
+    
+    return error
+
+def ap_error_calc(RayTrace,ApertureRadio,indexRay,ApertureIndex):
+    
+    if indexRay == 0:
+        error    = (abs(RayTrace[indexRay, 9 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 8 ,ApertureIndex]))
+        
+    if indexRay == 1:
+        error    = (abs(+ApertureRadio - RayTrace[indexRay, 9 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 8 ,ApertureIndex]))
+                    
+    if indexRay == 2:
+        error    = (abs(-ApertureRadio - RayTrace[indexRay, 9 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 8 ,ApertureIndex]))
+                   
+    if indexRay == 3:
+        error    = (abs(+ApertureRadio - RayTrace[indexRay, 8 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 9 ,ApertureIndex]))
+        
+    if indexRay == 4:
+        error    = (abs(-ApertureRadio - RayTrace[indexRay, 8 ,ApertureIndex])
+                   +abs(RayTrace[indexRay, 9 ,ApertureIndex]))
+    
+    return error
+    
+
+def XYZ_image (x0,*arg):
+    '''
+    Merit function to calculate the distance from a ray and the last 
+    surface (image) origin [0,0,0]. If the point source is in the optical axis, 
+    the rays with index from 1 to 4 describe the focus error distance.
+    
+    x0:   (list[float]) distance
     *arg: (list) [object optical design, int indexRay]
     
-    '''
     # x0 must be float
     # arg[0] must be Optical design
     # arg[1] must be int [0,1,2,3,4]
     
-    #Copy the values
+    '''
+    #rename values
     dist        = x0[0] 
     RayList     = arg[0].dsgPtoSrc.RayList
     SurfaceData = arg[0].optSys.SurfaceData
@@ -93,7 +124,6 @@ def mf_ray_XYZ0 (x0,*arg):
     #replace surface distance
     surf_len = len(SurfaceData)
     surf_idx = (surf_len-2) 
-    print (dist)
     arg[0].optSys.change_surface(dist,SurfaceData[surf_idx][1],SurfaceData[surf_idx][2],surfIndex=surf_idx)
     
     #Make Raytrace
@@ -109,44 +139,26 @@ def mf_ray_XYZ0 (x0,*arg):
 
 
 if __name__=='__main__':
-    from pto_src import PointSource
+    from ray_src import PointSource
     from opt_sys import OpSysData
-    from plt_fnc import plotSystem,plotRayTrace 
     from opt_dsg import OpDesign
+    from plt_fnc import plot_system,plot_rayTrace 
+
     import matplotlib.pyplot as plt
     
     pto1  = PointSource([0,1,0],635)
     syst1 = OpSysData()
-    syst1.addSurface(2,0.05,1.7)
-    syst1.addSurface(10,-0.5,1.4)
+    syst1.add_surface(2,0.05,1.7)
+    syst1.add_surface(10,-0.5,1.4)
     #syst1.changeAperture(1,surfIndex = 1)
     
     design1  = OpDesign(pto1,syst1)
     design1.autofocus()
     
-    arcs,line2d = plotSystem(syst1)
-    
     fig, ax = plt.subplots()
-    for q in arcs:
-        fig.gca().add_patch(q)
-    for w in line2d:
-        ax.add_line(w)
+    fig, ax = plot_system(design1, fig=fig, ax=ax)
+    fig, ax = plot_rayTrace(design1.raySrcTrace,fig=fig,ax=ax)
+    fig, ax = plot_rayTrace(design1.dsgPtoTrace,fig=fig,ax=ax)
+    fig, ax = plot_rayTrace(design1.dsgInfTrace,fig=fig,ax=ax)
     
-    
-    #design1 = Trace(pto1.RayList,syst1.SurfaceData)
-    
-    x0  = [0,0]
-    res0 = mf_ray_LMN (x0,design1,pto1,1)
-    
-    x1  = 40
-    res1 = mf_ray_XYZ0(x1,design1,1)
-    print(res1)
-    
-    line2d_ray = plotRayTrace(design1.RayTrace) 
-    for w in line2d_ray:
-        ax.add_line(w)
-        
-    plt.xlim([-5,+50])
-    plt.ylim([-6,+6])
-    plt.show()
     

@@ -118,14 +118,6 @@ if __name__=='__main__':
     syst1.invert_surface_order(0,5)
     
     #Plot system
-    arcs,line2d = plot_system(syst1)
-    
     fig, ax = plt.subplots()
-    for q in arcs:
-        fig.gca().add_patch(q)
-    for w in line2d:
-        ax.add_line(w)
+    plot_system(syst1,fig=fig,ax=ax,show=True)
     
-    plt.xlim([-5,+35])
-    plt.ylim([-6,+6])
-    plt.show()
