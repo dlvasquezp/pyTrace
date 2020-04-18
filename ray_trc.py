@@ -17,11 +17,11 @@ def Trace(RayList,SurfaceData):
                              [F,G,Delta]        -
                              [X,Y,Z]            new position X,Y,Z
                              [check1]           -
-                             [alfa,beta,gamma]  last Director cosines 
+                             [alfa,beta,gamma]  last direction cosines 
                              [lambda]           Wavelength
                              [cosI,CosIp]       -
                              [K]                -
-                             [L,M,N]            new director cosines
+                             [L,M,N]            new direction cosines
                              [Check2]           -
                          
             The position is represented by the index.

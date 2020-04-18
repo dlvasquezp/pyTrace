@@ -125,39 +125,31 @@ class OpDesign:
         #Actualize trace
         self.solve_dsg()
         
-    def plot_design(self):
+    def plot_design(self,lensData=[]):
         fig, ax = plt.subplots()
-        fig, ax = plot_system(self,fig,ax,show=True)
+        fig, ax = plot_system(self,fig,ax,lensData=lensData,show=True)
         fig, ax = plot_rayTrace(self.raySrcTrace,fig=fig,ax=ax)
         fig, ax = plot_rayTrace(self.dsgPtoTrace,fig=fig,ax=ax)
         
 
     
 if __name__=='__main__':
-    from plt_fnc import plot_system, plot_rayTrace
-    import matplotlib.pyplot as plt
+
     # Instantiate optical system
     syst1 = OpSysData()
     syst1.add_surface(9,+0.5,1.42)
     syst1.add_surface(4,-0.1 ,1.5)
+    lensData=[1,2,1.8,1.8]
+    syst1.plot_optical_system(lensData)
     
     # Instantiate point source
     pto1  = PointSource([0,0.5,0],635)
     
-    design1  = OpDesign(pto1,syst1,aprRad=1,aprInd=1)
+    design1  = OpDesign(pto1,syst1,aprRad=1.5,aprInd=1)
     #design1.autofocus() 
     
     RayTrace = design1.dsgPtoTrace
     Pto      = design1.usrSrc
     
-    #fig, ax = plt.subplots()
-    #fig, ax = plot_system(design1,fig,ax,show=True)
-    #fig, ax = plot_rayTrace(design1.dsgInfTrace,fig=fig,ax=ax)
-    #fig, ax = plot_rayTrace(design1.raySrcTrace,fig=fig,ax=ax)
-    #fig, ax = plot_rayTrace(design1.dsgPtoTrace,fig=fig,ax=ax)
-    
-    design1.plot_design()
-    
-    
-    
-    
+    #Plot design
+    design1.plot_design(lensData)

@@ -4,6 +4,8 @@ Created on Fri Mar 20 19:29:17 2020
 
 @author: David Vasquez
 """
+import matplotlib.pyplot as plt
+from plt_fnc import plot_system
 
 class OpSysData:
     '''
@@ -87,11 +89,14 @@ class OpSysData:
             assert isinstance(C,(int,float,str)), 'refraction index [n] must be either int,float or str'
         if surfType!='nan':
             assert surfType in self.surfaceTypes, 'Surface type [surfType] not supported'
-        
+ 
+    def plot_optical_system(self,lensData=[]):
+        fig, ax = plt.subplots()
+        plot_system(self,lensData=lensData,fig=fig,ax=ax,show=True)
+               
 if __name__=='__main__':
     
-    from plt_fnc import plot_system
-    import matplotlib.pyplot as plt
+    #import matplotlib.pyplot as plt
     
     #Create system
     syst1 = OpSysData()
